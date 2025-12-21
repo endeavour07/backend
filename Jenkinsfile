@@ -7,9 +7,9 @@ pipeline {
     }
 
     environment {
-        BACKUP_DIR  = "D:\\OneDrive - WAISL LIMITED\\Desktop\\sac\\Be_Backend\\service-1"
         TOMCAT_HOME = "C:\\Program Files\\Apache Software Foundation\\Tomcat 10.1_Tomcat10.26"
-        APP_NAME    = "service-1"
+        APP_NAME    = "service1"
+        BACKUP_DIR  = "D:\\OneDrive - WAISL LIMITED\\Desktop\\sac\\Be_Backend\\service-1"
     }
 
     stages {
@@ -30,42 +30,34 @@ pipeline {
             steps {
                 bat """
                     if not exist "%BACKUP_DIR%" mkdir "%BACKUP_DIR%"
-                    copy target\\*.war "%BACKUP_DIR%\\%APP_NAME%_%BUILD_NUMBER%.war"
+                    copy target\\${APP_NAME}.war "%BACKUP_DIR%\\${APP_NAME}_%BUILD_NUMBER%.war"
                 """
             }
         }
 
-        stage('Deploy Latest WAR to Tomcat') {
+        stage('Deploy to Tomcat (Hot Deploy)') {
             steps {
-                echo "Deploying ONLY the latest WAR to Tomcat..."
+                echo "Hot deploying WAR without stopping Tomcat..."
 
-                // Stop Tomcat
-                bat "\"%TOMCAT_HOME%\\bin\\shutdown.bat\""
-
-                // Remove old WAR (if any)
                 bat """
-                    if exist "%TOMCAT_HOME%\\webapps\\%APP_NAME%.war" (
-                        del "%TOMCAT_HOME%\\webapps\\%APP_NAME%.war"
+                    REM Remove old deployment
+                    if exist "%TOMCAT_HOME%\\webapps\\${APP_NAME}" (
+                        rmdir /S /Q "%TOMCAT_HOME%\\webapps\\${APP_NAME}"
                     )
-                    if exist "%TOMCAT_HOME%\\webapps\\%APP_NAME%" (
-                        rmdir /S /Q "%TOMCAT_HOME%\\webapps\\%APP_NAME%"
+                    if exist "%TOMCAT_HOME%\\webapps\\${APP_NAME}.war" (
+                        del "%TOMCAT_HOME%\\webapps\\${APP_NAME}.war"
                     )
-                """
 
-                // Copy ONLY latest WAR
-                bat """
-                    copy target\\*.war "%TOMCAT_HOME%\\webapps\\%APP_NAME%.war"
+                    REM Deploy new WAR
+                    copy target\\${APP_NAME}.war "%TOMCAT_HOME%\\webapps\\${APP_NAME}.war"
                 """
-
-                // Start Tomcat
-                bat "\"%TOMCAT_HOME%\\bin\\startup.bat\""
             }
         }
     }
 
     post {
         success {
-            echo "Latest WAR deployed successfully"
+            echo "Deployment completed successfully (Hot Deploy)"
         }
         failure {
             echo "Deployment failed"
