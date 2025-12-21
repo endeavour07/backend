@@ -8,7 +8,7 @@ pipeline {
 
     environment {
         TOMCAT_HOME = "C:\\Program Files\\Apache Software Foundation\\Tomcat 10.1_Tomcat10.26"
-        APP_NAME    = "service1"
+        APP_NAME    = "service2"
         BACKUP_DIR  = "D:\\OneDrive - WAISL LIMITED\\Desktop\\sac\\Be_Backend\\service-2"
     }
 
